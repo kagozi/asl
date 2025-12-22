@@ -189,7 +189,7 @@ python utils/visualization.py --log-dir results/logs/baseline_text2gloss
 If you use this code in your research, please cite:
 
 ```bibtex
-@mastersthesis{kagozi2025textgloss,
+@thesis{kagozi2025textgloss,
   title={Modern Transformer Architectures for Bidirectional Text-Gloss Translation},
   author={Alex Kagozi},
   year={2025},
