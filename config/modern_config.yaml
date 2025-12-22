@@ -59,7 +59,7 @@ training:
   # Learning rate schedule
   scheduler: "noam"
   warmup_steps: 4000
-  lr_factor: 2.0  # Increased for modern architecture
+  lr_factor: 1.0  # Increased for modern architecture
   
   # Regularization
   label_smoothing: 0.1
