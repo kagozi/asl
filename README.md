@@ -1,9 +1,5 @@
 # Project Structure for Bidirectional Text-Gloss Translation
-
-"""
-Project Directory Structure:
-============================
-
+```
 asl/
 ├── README.md
 ├── requirements.txt
@@ -48,16 +44,7 @@ asl/
 └── notebooks/
     ├── 01_data_exploration.ipynb
     └── 02_error_analysis.ipynb
-"""
-
-# ============================================================================
-# FILE 1: README.md
-# ============================================================================
-
-README_CONTENT = """# Bidirectional Text-Gloss Translation System
-
-A comprehensive implementation of modern transformer architectures for bidirectional translation between natural language text and sign language gloss notation.
-
+```
 ## 🎯 Project Overview
 
 This project implements and compares multiple transformer architectures for:
