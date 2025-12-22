@@ -17,8 +17,8 @@ class TranslationDataset(Dataset):
     def __init__(
         self,
         dataframe: pd.DataFrame,
-        src_vocab: 'Vocabulary',
-        tgt_vocab:  'Vocabulary',
+        src_vocab: Vocabulary,
+        tgt_vocab:  Vocabulary,
         direction: str = 'text2gloss',
         max_length: Optional[int] = None
     ):
@@ -103,7 +103,7 @@ def collate_fn(batch: List[Tuple[torch.Tensor, torch.Tensor]],
 def load_and_prepare_data(
     config: Dict,
     direction: str = 'text2gloss'
-) -> Tuple[Dataset, Dataset, Dataset, 'Vocabulary', 'Vocabulary']:
+) -> Tuple[Dataset, Dataset, Dataset, Vocabulary, Vocabulary]:
     """
     Load and prepare datasets for training.
     
@@ -116,7 +116,7 @@ def load_and_prepare_data(
     """
     from datasets import load_dataset
     from sklearn.model_selection import train_test_split
-    from .preprocessing import TextGlossPreprocessor, Vocabulary
+    from .preprocessing import TextGlossPreprocessor
     
     # Load dataset
     print(f"Loading dataset: {config['data']['dataset_name']}")
