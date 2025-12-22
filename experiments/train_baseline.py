@@ -18,7 +18,7 @@ from data.dataset import load_and_prepare_data, collate_fn
 from models.baseline_transformer import create_baseline_model
 from training.trainer import TransformerTrainer
 from evaluation.evaluator import TranslationEvaluator
-from utils import plot_training_curves, save_metrics_table
+from utils.logging_utils import plot_training_curves, save_metrics_table
 
 
 def main():
