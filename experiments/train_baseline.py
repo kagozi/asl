@@ -62,7 +62,7 @@ def train_single_direction(config, direction, device, resume_path=None):
     
     # Create output directory
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    output_dir = Path('results') / f'baseline_{direction}_{timestamp}'
+    output_dir = Path('../santosh_lab/shared/KagoziA/sl/results') / f'baseline_{direction}_{timestamp}'
     output_dir.mkdir(parents=True, exist_ok=True)
     checkpoint_dir = output_dir / 'checkpoints'
     checkpoint_dir.mkdir(exist_ok=True)

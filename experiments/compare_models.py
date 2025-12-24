@@ -12,9 +12,9 @@ from utils import plot_metric_comparison, save_metrics_table
 
 def main():
     parser = argparse.ArgumentParser(description='Compare model results')
-    parser.add_argument('--results-dir', type=str, default='results',
+    parser.add_argument('--results-dir', type=str, default='../santosh_lab/shared/KagoziA/sl/results',
                         help='Directory containing result folders')
-    parser.add_argument('--output', type=str, default='results/comparison',
+    parser.add_argument('--output', type=str, default='../santosh_lab/shared/KagoziA/sl/results/comparison',
                         help='Output directory for comparison plots')
     args = parser.parse_args()
     
