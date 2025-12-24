@@ -110,6 +110,73 @@ class TransformerTrainer:
         self.patience = train_config.get('early_stopping_patience', 10)
         self.patience_counter = 0
     
+    # def train_epoch(self) -> float:
+    #     """Train for one epoch."""
+    #     self.model.train()
+    #     total_loss = 0
+    #     num_batches = len(self.train_loader)
+        
+    #     self.optimizer.zero_grad()
+        
+    #     progress_bar = tqdm(
+    #         self.train_loader, 
+    #         desc=f'Epoch {self.current_epoch + 1}/{self.epochs}',
+    #         leave=False
+    #     )
+        
+    #     for batch_idx, (src, tgt) in enumerate(progress_bar):
+    #         src = src.to(self.device)
+    #         tgt = tgt.to(self.device)
+            
+    #         # Forward pass with mixed precision
+    #         if self.use_amp:
+    #             with autocast():
+    #                 logits = self.model(src, tgt)
+    #                 loss = self._compute_loss(logits, tgt)
+    #                 loss = loss / self.gradient_accumulation_steps
+                
+    #             # Backward pass
+    #             self.scaler.scale(loss).backward()
+    #         else:
+    #             logits = self.model(src, tgt)
+    #             loss = self._compute_loss(logits, tgt)
+    #             loss = loss / self.gradient_accumulation_steps
+    #             loss.backward()
+            
+    #         # Gradient accumulation
+    #         if (batch_idx + 1) % self.gradient_accumulation_steps == 0:
+    #             if self.use_amp:
+    #                 self.scaler.unscale_(self.optimizer)
+    #                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
+    #                 self.scaler.step(self.optimizer)
+    #                 self.scaler.update()
+    #             else:
+    #                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
+    #                 self.optimizer.step()
+                
+    #             if self.scheduler:
+    #                 self.scheduler.step()
+                
+    #             self.optimizer.zero_grad()
+    #             self.global_step += 1
+            
+    #         # Update metrics
+    #         total_loss += loss.item() * self.gradient_accumulation_steps
+            
+    #         # Update progress bar
+    #         current_lr = self.scheduler.get_last_lr()[0] if self.scheduler else self.optimizer.param_groups[0]['lr']
+    #         avg_loss = total_loss / (batch_idx + 1)
+    #         progress_bar.set_postfix({
+    #             'loss': f'{avg_loss:.4f}',
+    #             'lr': f'{current_lr:.2e}'
+    #         })
+            
+    #         # Clean up
+    #         del logits, loss
+    #         if self.device.type == 'cuda':
+    #             torch.cuda.empty_cache()
+        
+    #     return total_loss / num_batches
     def train_epoch(self) -> float:
         """Train for one epoch."""
         self.model.train()
@@ -133,6 +200,14 @@ class TransformerTrainer:
                 with autocast():
                     logits = self.model(src, tgt)
                     loss = self._compute_loss(logits, tgt)
+                    
+                    # ADD THIS CHECK
+                    if torch.isnan(loss) or torch.isinf(loss):
+                        print(f"\nWarning: NaN/Inf loss detected at batch {batch_idx}")
+                        print(f"Logits stats: min={logits.min():.4f}, max={logits.max():.4f}")
+                        print(f"Skipping this batch...")
+                        continue  # Skip this batch
+                    
                     loss = loss / self.gradient_accumulation_steps
                 
                 # Backward pass
@@ -140,6 +215,14 @@ class TransformerTrainer:
             else:
                 logits = self.model(src, tgt)
                 loss = self._compute_loss(logits, tgt)
+                
+                # ADD THIS CHECK
+                if torch.isnan(loss) or torch.isinf(loss):
+                    print(f"\nWarning: NaN/Inf loss detected at batch {batch_idx}")
+                    print(f"Logits stats: min={logits.min():.4f}, max={logits.max():.4f}")
+                    print(f"Skipping this batch...")
+                    continue  # Skip this batch
+                
                 loss = loss / self.gradient_accumulation_steps
                 loss.backward()
             
@@ -147,11 +230,33 @@ class TransformerTrainer:
             if (batch_idx + 1) % self.gradient_accumulation_steps == 0:
                 if self.use_amp:
                     self.scaler.unscale_(self.optimizer)
-                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
+                    
+                    # ADD THIS: Check gradients before clipping
+                    grad_norm = torch.nn.utils.clip_grad_norm_(
+                        self.model.parameters(), 
+                        self.max_grad_norm
+                    )
+                    
+                    if torch.isnan(grad_norm) or torch.isinf(grad_norm):
+                        print(f"\nWarning: NaN/Inf gradients detected!")
+                        print(f"Skipping optimizer step...")
+                        self.optimizer.zero_grad()
+                        continue
+                    
                     self.scaler.step(self.optimizer)
                     self.scaler.update()
                 else:
-                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
+                    grad_norm = torch.nn.utils.clip_grad_norm_(
+                        self.model.parameters(), 
+                        self.max_grad_norm
+                    )
+                    
+                    if torch.isnan(grad_norm) or torch.isinf(grad_norm):
+                        print(f"\nWarning: NaN/Inf gradients detected!")
+                        print(f"Skipping optimizer step...")
+                        self.optimizer.zero_grad()
+                        continue
+                    
                     self.optimizer.step()
                 
                 if self.scheduler:
@@ -176,7 +281,7 @@ class TransformerTrainer:
             if self.device.type == 'cuda':
                 torch.cuda.empty_cache()
         
-        return total_loss / num_batches
+        return total_loss / num_batches if num_batches > 0 else float('nan')
     
     def validate(self) -> float:
         """Validate the model."""

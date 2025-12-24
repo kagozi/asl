@@ -61,18 +61,24 @@ class NoamLRScheduler:
             param_group['lr'] = rate
         self._rate = rate
     
+    
     def get_rate(self, step: int = None) -> float:
         """Calculate learning rate for given step."""
         if step is None:
             step = self._step
         
         if step == 0:
-            step = 1
+            step = 1  # This prevents division by zero
         
-        return self.factor * (
+        # Add a check to prevent extremely high LR at start
+        lr = self.factor * (
             self.d_model ** (-0.5) * 
             min(step ** (-0.5), step * self.warmup_steps ** (-1.5))
         )
+        
+        # Cap the learning rate to prevent explosion
+        max_lr = 1e-3  # Add this line
+        return min(lr, max_lr)  # Add this line
     
     def get_last_lr(self):
         """Return last computed learning rate."""
