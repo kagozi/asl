@@ -41,12 +41,12 @@ MAX_DECODE_LEN = 100
 
 SEED = 42
 
-OUT_DIR = "runs"
-RESULTS_CSV = Path("runs/results.csv")
+OUT_DIR = "'../santosh_lab/shared/KagoziA/asl/runs"
+RESULTS_CSV = Path("../santosh_lab/shared/KagoziA/asl/runs/results.csv")
 SKIP_IF_EXISTS_IN_CSV = True  # set False to force rerun
 
-# dataloader stability in notebooks
-NUM_WORKERS = 0
+
+NUM_WORKERS = 2
 
 def size_to_layers(size: str):
     if size == "small":

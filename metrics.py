@@ -5,6 +5,10 @@ from typing import Dict, List, Tuple
 
 import sacrebleu
 
+import nltk
+nltk.download("wordnet")
+nltk.download("omw-1.4")
+
 def corpus_bleu(preds: List[str], refs: List[str]) -> float:
     bleu = sacrebleu.corpus_bleu(preds, [refs])
     return float(bleu.score)
