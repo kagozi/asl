@@ -6,35 +6,14 @@ from typing import Dict, Optional
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from metrics import compute_all_metrics, corpus_bleu
 from vocab import Vocab
 from decode import decode_loader_full, greedy_decode
 from lr_scheduler import NoamLR
 from loss import LabelSmoothingLoss
-from modern import decode
-
-    
-@dataclass
-class RunConfig:
-    run_name: str
-    model_type: str  # baseline | modern
-    size: str  # small | medium | large
-    d_model: int
-    nhead: int
-    enc_layers: int
-    dec_layers: int
-    dropout: float
-    num_kv_heads: int
-    ffn_mult: float
-    lr_factor: float
-    warmup_steps: int
-    batch_size: int
-    grad_accum: int
-    max_tgt_len: int
-    max_decode_len: int
-    epochs: int
-    seed: int
+from config import RunConfig
+from vocab import decode
 
 
 def set_seed(seed: int):

@@ -15,9 +15,10 @@ from process_asl import (
     collate_batch,
 )
 from vocab import build_word_vocab, Vocab
-from train import train_one_run, RunConfig
+from train import train_one_run
 from baseline import BaselineTransformer
 from modern import ModernTransformer
+from config import RunConfig
 
 # -----------------------------
 # 0) Config
