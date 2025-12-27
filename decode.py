@@ -2,7 +2,7 @@ from typing import Callable
 import torch
 from typing import List, Tuple
 from vocab import Vocab, decode
-from train import RunConfig
+from config import RunConfig
 from torch.utils.data import DataLoader
 
 
