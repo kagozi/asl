@@ -1,11 +1,13 @@
-from __future__ import annotations
-
+import torch
 from dataclasses import dataclass
 from typing import Tuple
-
+from typing import List, Tuple
 import pandas as pd
 from datasets import load_dataset
 from sklearn.model_selection import train_test_split
+from torch.utils.data import Dataset
+from torch.nn.utils.rnn import pad_sequence
+
 
 @dataclass
 class DatasetSplits:
@@ -69,3 +71,41 @@ def load_saved_splits(out_dir: str) -> DatasetSplits:
     val = pd.read_parquet(f"{out_dir}/val.parquet")
     test = pd.read_parquet(f"{out_dir}/test.parquet")
     return DatasetSplits(train=train, val=val, test=test)
+
+
+
+class TranslationDataset(Dataset):
+    def __init__(self, df, text_vocab: Vocab, gloss_vocab: Vocab):
+        self.df = df
+        self.text_vocab = text_vocab
+        self.gloss_vocab = gloss_vocab
+
+    def __len__(self):
+        return len(self.df)
+
+    def __getitem__(self, idx: int):
+        row = self.df.iloc[idx]
+        src_ids = encode(row["processed_text"], self.text_vocab, add_bos_eos=False)
+        tgt_ids = encode(row["processed_gloss"], self.gloss_vocab, add_bos_eos=True)
+        return torch.tensor(src_ids, dtype=torch.long), torch.tensor(tgt_ids, dtype=torch.long)
+
+
+@dataclass
+class Batch:
+    src: torch.Tensor
+    tgt: torch.Tensor
+    src_key_padding_mask: torch.Tensor
+    tgt_key_padding_mask: torch.Tensor
+
+
+def collate_batch(batch: List[Tuple[torch.Tensor, torch.Tensor]], text_vocab: Vocab, gloss_vocab: Vocab) -> Batch:
+    src_list = [b[0] for b in batch]
+    tgt_list = [b[1] for b in batch]
+
+    src = pad_sequence(src_list, batch_first=True, padding_value=text_vocab.pad_id)
+    tgt = pad_sequence(tgt_list, batch_first=True, padding_value=gloss_vocab.pad_id)
+
+    src_key_padding_mask = src.eq(text_vocab.pad_id)  # (B, S)
+    tgt_key_padding_mask = tgt.eq(gloss_vocab.pad_id)  # (B, T)
+
+    return Batch(src=src, tgt=tgt, src_key_padding_mask=src_key_padding_mask, tgt_key_padding_mask=tgt_key_padding_mask)
