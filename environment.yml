@@ -1,0 +1,36 @@
+name: aslmt
+channels:
+  - conda-forge
+  - pytorch
+  - nvidia
+dependencies:
+  # --- Core ---
+  - python=3.10
+  - pip
+  - numpy
+  - pandas
+  - tqdm
+  - scikit-learn
+
+  # --- PyTorch (GPU-enabled) ---
+  - pytorch>=2.1
+  - pytorch-cuda=12.1   # adjust if your cluster uses a different CUDA
+  - torchvision
+  - torchaudio
+
+  # --- NLP / MT metrics ---
+  - sacrebleu
+  - nltk
+  - jiwer
+
+  # --- Jupyter (optional but useful on clusters) ---
+  - jupyterlab
+  - ipykernel
+
+  # --- Utilities ---
+  - matplotlib
+  - seaborn
+
+  # --- Pip-only packages ---
+  - pip:
+      - einops
