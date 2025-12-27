@@ -57,3 +57,52 @@ def greedy_decode(
             break
 
     return ys
+
+
+from typing import List, Tuple
+from vocab import Vocab, decode
+from config import RunConfig
+
+def decode_loader_full(
+    model,
+    loader: DataLoader,
+    text_vocab: Vocab,
+    gloss_vocab: Vocab,
+    cfg: RunConfig,
+    device: torch.device,
+) -> Tuple[List[str], List[str]]:
+    """
+    Decode *all* items in loader (full set), returns (pred_strs, ref_strs).
+    """
+    model.eval()
+    preds, refs = [], []
+
+    with torch.no_grad():
+        for batch in loader:
+            src = batch.src.to(device)
+            src_kpm = batch.src_key_padding_mask.to(device)
+            tgt = batch.tgt.to(device)
+
+            ys = greedy_decode(
+                model,
+                src=src,
+                src_key_padding_mask=src_kpm,
+                bos_id=gloss_vocab.bos_id,
+                eos_id=gloss_vocab.eos_id,
+                pad_id=gloss_vocab.pad_id,
+                max_len=cfg.max_decode_len,
+            )
+
+            for i in range(src.size(0)):
+                hyp_ids = ys[i].tolist()
+                if gloss_vocab.eos_id in hyp_ids:
+                    hyp_ids = hyp_ids[: hyp_ids.index(gloss_vocab.eos_id) + 1]
+                hyp = decode(hyp_ids, gloss_vocab, skip_special=True)
+
+                ref_ids = tgt[i].tolist()
+                ref = decode(ref_ids, gloss_vocab, skip_special=True)
+
+                preds.append(hyp)
+                refs.append(ref)
+
+    return preds, refs
