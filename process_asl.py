@@ -7,6 +7,8 @@ from datasets import load_dataset
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
+from vocab import Vocab, encode
+from preprocess import preprocess_text, preprocess_gloss
 
 
 @dataclass

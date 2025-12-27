@@ -12,6 +12,7 @@ from vocab import Vocab
 from decode import decode_loader_full, greedy_decode
 from lr_scheduler import NoamLR
 from loss import LabelSmoothingLoss
+from modern import decode
 
     
 @dataclass
@@ -107,16 +108,6 @@ def train_one_run(
 
         # Quick BLEU (proposal-friendly; you can increase samples)
         bleu = eval_bleu(model, val_loader, text_vocab, gloss_vocab, cfg, device, max_samples=bleu_eval_samples)
-
-        # log_row = {
-        #     **asdict(cfg),
-        #     "epoch": epoch,
-        #     "train_loss": total_loss / max(1, len(train_loader)),
-        #     "val_loss": val_loss,
-        #     "val_bleu": bleu,
-        #     "checkpoint": str(ckpt_path),
-        # }
-        # append_csv(results_csv, log_row)
 
     ckpt_obj = torch.load(ckpt_path, map_location=device)
     model.load_state_dict(ckpt_obj["model"])

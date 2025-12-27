@@ -1,6 +1,9 @@
 from typing import Callable
-
 import torch
+from typing import List, Tuple
+from vocab import Vocab, decode
+from train import RunConfig
+from torch.utils.data import DataLoader
 
 
 def greedy_decode(
@@ -57,11 +60,6 @@ def greedy_decode(
             break
 
     return ys
-
-
-from typing import List, Tuple
-from vocab import Vocab, decode
-from config import RunConfig
 
 def decode_loader_full(
     model,
