@@ -1,3 +1,5 @@
+"""Vocabulary building and encoding/decoding utilities."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

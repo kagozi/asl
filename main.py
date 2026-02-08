@@ -18,7 +18,7 @@ from vocab import build_word_vocab, Vocab
 from train import train_one_run
 from baseline import BaselineTransformer
 from modern import ModernTransformer
-from config import RunConfig
+from config.__init_ import RunConfig
 
 # -----------------------------
 # 0) Config

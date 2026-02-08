@@ -1,8 +1,12 @@
+"""Modern Transformer architecture with RoPE, GQA, RMSNorm, and SwiGLU."""
+
 from __future__ import annotations
 
 import torch
 import torch.nn as nn
-from common import RMSNorm, SwiGLU, RoPE, Attention, causal_mask
+
+from .components import RMSNorm, SwiGLU, Attention, causal_mask
+
 
 class ModernEncoderLayer(nn.Module):
     def __init__(self, d_model: int, nhead: int, num_kv_heads: int | None, dropout: float, ffn_mult: float = 2.7, use_rope: bool = True):
