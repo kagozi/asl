@@ -9,7 +9,7 @@ import torch
 from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
 
-from .vocab import Vocab, encode
+from vocab import Vocab, encode
 
 
 class TranslationDataset(Dataset):

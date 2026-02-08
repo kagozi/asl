@@ -14,11 +14,11 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from ..config.experiment_config import ExperimentConfig
-from ..models.modern_transformer import ModernTransformer
-from ..utils.training import LabelSmoothingLoss, NoamLR, decode_loader_full
-from ..utils.metrics import compute_all_metrics, corpus_bleu
-from ..utils.vocab import Vocab
+from config.experiment_config import ExperimentConfig
+from models.modern_transformer import ModernTransformer
+from utils.training import LabelSmoothingLoss, NoamLR, decode_loader_full
+from utils.metrics import compute_all_metrics, corpus_bleu
+from utils.vocab import Vocab
 
 
 def set_seed(seed: int):
