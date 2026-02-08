@@ -1,55 +1,52 @@
+"""Evaluation metrics for translation quality."""
+
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import sacrebleu
 
-import nltk
-nltk.download("wordnet")
-nltk.download("omw-1.4")
+
+def _safe_div(a: float, b: float) -> float:
+    return float(a / b) if b else 0.0
+
 
 def corpus_bleu(preds: List[str], refs: List[str]) -> float:
     bleu = sacrebleu.corpus_bleu(preds, [refs])
     return float(bleu.score)
 
-def _safe_div(a: float, b: float) -> float:
-    return float(a / b) if b else 0.0
 
 def corpus_bleu_ngram(preds: List[str], refs: List[str], n: int) -> float:
-    """
-    Returns BLEU-n (%), using SacreBLEU with only up-to-n n-gram order.
-    """
+    """Returns BLEU-n (%), using SacreBLEU with only up-to-n n-gram order."""
     bleu = sacrebleu.metrics.BLEU(effective_order=True, max_ngram_order=n)
     return float(bleu.corpus_score(preds, [refs]).score)
 
+
 def corpus_meteor(preds: List[str], refs: List[str]) -> float:
-    """
-    Corpus METEOR as mean of sentence METEOR.
-    Requires: nltk
-    """
+    """Corpus METEOR as mean of sentence METEOR."""
     from nltk.translate.meteor_score import meteor_score
 
     scores = []
     for hyp, ref in zip(preds, refs):
-        # meteor_score expects token lists
         scores.append(meteor_score([ref.split()], hyp.split()))
     return float(sum(scores) / max(1, len(scores)))
+
 
 def corpus_chrf(preds: List[str], refs: List[str]) -> float:
     chrf = sacrebleu.corpus_chrf(preds, [refs])
     return float(chrf.score)
 
+
 def word_error_rate(preds: List[str], refs: List[str]) -> float:
-    """
-    WER using jiwer (word-level edit distance).
-    """
+    """WER using jiwer (word-level edit distance)."""
     from jiwer import wer
     return float(wer(refs, preds))
+
 
 def exact_match(preds: List[str], refs: List[str]) -> float:
     correct = sum(int(p.strip() == r.strip()) for p, r in zip(preds, refs))
     return _safe_div(correct, len(refs))
+
 
 def compute_all_metrics(preds: List[str], refs: List[str]) -> Dict[str, float]:
     return {

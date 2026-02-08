@@ -1,3 +1,5 @@
+"""Core transformer components: RoPE, RMSNorm, SwiGLU, Attention."""
+
 from __future__ import annotations
 
 import math
@@ -60,14 +62,13 @@ class RoPE(nn.Module):
 
     def _build_cos_sin(self, t: int, device: torch.device, dtype: torch.dtype):
         pos = torch.arange(t, device=device, dtype=self.inv_freq.dtype)
-        freqs = torch.einsum("t,d->td", pos, self.inv_freq)          # (t, D/2)
-        emb = torch.cat([freqs, freqs], dim=-1).to(device=device, dtype=dtype)  # (t, D)
-        cos = emb.cos()[None, None, :, :]  # (1,1,t,D)
+        freqs = torch.einsum("t,d->td", pos, self.inv_freq)
+        emb = torch.cat([freqs, freqs], dim=-1).to(device=device, dtype=dtype)
+        cos = emb.cos()[None, None, :, :]
         sin = emb.sin()[None, None, :, :]
         return cos, sin
 
     def forward(self, q: torch.Tensor, k: torch.Tensor):
-        # q: (B,H,Tq,D) , k: (B,H,Tk,D)
         Tq = q.size(-2)
         Tk = k.size(-2)
         t = max(Tq, Tk)
@@ -80,6 +81,7 @@ class RoPE(nn.Module):
         q2 = (q * cos_q) + (_rotate_half(q) * sin_q)
         k2 = (k * cos_k) + (_rotate_half(k) * sin_k)
         return q2, k2
+
 
 class Attention(nn.Module):
     """Multi-head attention with optional Grouped-Query Attention (GQA) and RoPE."""
@@ -118,43 +120,37 @@ class Attention(nn.Module):
         attn_mask: torch.Tensor | None,
         key_padding_mask: torch.Tensor | None,
     ) -> torch.Tensor:
-        # x_q: (B, Tq, D), x_kv: (B, Tk, D)
         B, Tq, _ = x_q.shape
         Tk = x_kv.size(1)
 
-        q = self.q_proj(x_q).view(B, Tq, self.num_q_heads, self.head_dim).transpose(1, 2)  # (B, Hq, Tq, Hd)
-        k = self.k_proj(x_kv).view(B, Tk, self.num_kv_heads, self.head_dim).transpose(1, 2)  # (B, Hkv, Tk, Hd)
+        q = self.q_proj(x_q).view(B, Tq, self.num_q_heads, self.head_dim).transpose(1, 2)
+        k = self.k_proj(x_kv).view(B, Tk, self.num_kv_heads, self.head_dim).transpose(1, 2)
         v = self.v_proj(x_kv).view(B, Tk, self.num_kv_heads, self.head_dim).transpose(1, 2)
 
         if self.use_rope:
             q, k = self.rope(q, k)
 
-        # Expand kv heads to match q heads (GQA)
         if self.num_kv_heads != self.num_q_heads:
             repeat = self.num_q_heads // self.num_kv_heads
             k = k.repeat_interleave(repeat, dim=1)
             v = v.repeat_interleave(repeat, dim=1)
 
-        # Scaled dot-product attention
-        scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.head_dim)  # (B, H, Tq, Tk)
+        scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.head_dim)
 
         if attn_mask is not None:
-            # attn_mask expected shape broadcastable to (B, H, Tq, Tk)
             scores = scores + attn_mask
 
         if key_padding_mask is not None:
-            # key_padding_mask: (B, Tk) where True means pad
             scores = scores.masked_fill(key_padding_mask[:, None, None, :], float("-inf"))
 
         attn = torch.softmax(scores, dim=-1)
         attn = self.dropout(attn)
-        out = torch.matmul(attn, v)  # (B, H, Tq, Hd)
+        out = torch.matmul(attn, v)
         out = out.transpose(1, 2).contiguous().view(B, Tq, self.d_model)
         return self.out_proj(out)
 
 
 def causal_mask(seq_len: int, device: torch.device) -> torch.Tensor:
-    # (1,1,T,T) with -inf above diagonal
     m = torch.full((seq_len, seq_len), float("-inf"), device=device)
     m = torch.triu(m, diagonal=1)
     return m[None, None, :, :]
