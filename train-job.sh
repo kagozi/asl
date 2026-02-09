@@ -47,6 +47,6 @@ python -c "import torch; print('Torch CUDA available:', torch.cuda.is_available(
 export NLTK_DATA=$PWD/.nltk_data
 python -c "import nltk; nltk.download('wordnet', download_dir='$NLTK_DATA'); nltk.download('omw-1.4', download_dir='$NLTK_DATA')"
 
-python run_gsl_experiments --grid full
+python run_gsl_experiments.py --grid full
 
 nvidia-smi
