@@ -5,7 +5,7 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
-from components import RMSNorm, SwiGLU, Attention, causal_mask
+from .components import RMSNorm, SwiGLU, Attention, causal_mask
 
 
 class ModernEncoderLayer(nn.Module):
