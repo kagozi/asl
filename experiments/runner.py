@@ -201,8 +201,8 @@ class ExperimentRunner:
         refs = []
         seen = 0
         
-        from ..utils.training import greedy_decode
-        from ..utils.vocab import decode
+        from utils.training import greedy_decode
+        from utils.vocab import decode
         
         with torch.no_grad():
             for batch in loader:
